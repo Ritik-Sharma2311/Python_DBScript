@@ -2,11 +2,13 @@ import os
 import openpyxl
 from datetime import datetime
 
-ASSETS_DIR =  "assets"
+INPUT_DIR = "input"
+OUTPUT_DIR = "output"
 
-# Function to extract question and options
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 def extract_question_and_options(desc):
-    option_formats = ["a.", "b.", "c.", "d.", "(a)", "(b)", "(c)", "(d)", 
+    option_formats = ["a.", "b.", "c.", "d.", "(a)", "(b)", "(c)", "(d)","a)", "b)", "c)", "d)","A)","A.",
                       "1.", "2.", "3.", "4.", "(1)", "(2)", "(3)", "(4)"]
     options = []
     question = None
@@ -32,10 +34,9 @@ def extract_question_and_options(desc):
 
     return question.strip(), options[0], options[1], options[2], options[3]
 
-# Process all files in the assets directory
-for file_name in os.listdir(ASSETS_DIR):
+for file_name in os.listdir(INPUT_DIR):
     if file_name.endswith(".xlsx"):
-        file_path = os.path.join(ASSETS_DIR, file_name)
+        file_path = os.path.join(INPUT_DIR, file_name)
         workbook = openpyxl.load_workbook(file_path)
         sheet = workbook.active
 
@@ -44,13 +45,13 @@ for file_name in os.listdir(ASSETS_DIR):
         processed_count = 0
         skipped_count = 0
 
-        # Process rows
         for row_idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
             qno, desc, level, code, subject = row
 
             try:
                 if isinstance(qno, str) and qno.startswith("="):
                     skipped_data.append((qno, desc))
+                    skipped_count += 1
                     continue
 
                 if not desc:
@@ -81,7 +82,7 @@ for file_name in os.listdir(ASSETS_DIR):
 
         date_suffix = datetime.now().strftime("%Y-%m-%d")
         output_file_name = f"{os.path.splitext(file_name)[0]}_processed_{date_suffix}.xlsx"
-        output_file_path = os.path.join(ASSETS_DIR, output_file_name)
+        output_file_path = os.path.join(OUTPUT_DIR, output_file_name)
         output_workbook.save(output_file_path)
 
         print(f"Processed data saved to: {output_file_path}")
